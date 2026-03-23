@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nixclaw"
+version = "0.1.0"
+description = "Multi-agent AI system built on AutoGen for autonomous task execution"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "NixClaw"}]
+keywords = ["ai", "agents", "multi-agent", "autogen", "automation", "orchestration", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "autogen-agentchat==0.7.5",
+    "autogen-core==0.7.5",
+    "autogen-ext[openai]==0.7.5",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "aiofiles>=24.0.0",
+    "requests>=2.31.0",
+    "sqlalchemy>=2.0.0",
+    "aiosqlite>=0.20.0",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110.0", "uvicorn>=0.27.0", "httpx>=0.27.0"]
+telegram = ["python-telegram-bot>=21.0"]
+storage = ["redis>=5.0.0"]
+all = ["nixclaw[api,telegram,storage]"]
+dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.0", "ruff>=0.3.0"]
+
+[project.urls]
+Homepage = "https://github.com/nixclaw/nixclaw"
+Repository = "https://github.com/nixclaw/nixclaw"
+
+[project.scripts]
+nixclaw = "nixclaw.main:main"
+
+[tool.setuptools.packages.find]
+include = ["nixclaw*"]
+
+[tool.setuptools.package-data]
+nixclaw = ["py.typed"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

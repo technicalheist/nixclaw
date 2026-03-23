@@ -1,0 +1,31 @@
+services:
+  agent:
+    build: .
+    env_file: .env
+    volumes:
+      - ./workspace:/tmp/agent_workdir
+      - ./logs:/var/log/autogen-agent
+    restart: unless-stopped
+    # Run in interactive mode by default
+    command: ["--interactive"]
+
+  # Optional: Redis for task queue (Phase 2)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+
+  # Optional: API server (Phase 4)
+  # api:
+  #   build: .
+  #   env_file: .env
+  #   ports:
+  #     - "8000:8000"
+  #   command: ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]
+  #   depends_on:
+  #     - redis
+
+# volumes:
+#   redis_data:
