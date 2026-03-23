@@ -7,9 +7,9 @@ from functools import lru_cache
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
-# Load .env from project root
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(_PROJECT_ROOT / ".env")
+# Load .env from the current working directory (where the user runs nixclaw)
+# This works correctly whether nixclaw is run from source or installed via pip
+load_dotenv(Path.cwd() / ".env")
 
 
 def _env(key: str, default: str = "") -> str:
