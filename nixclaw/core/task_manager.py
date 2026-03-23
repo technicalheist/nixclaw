@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import asyncio
+import queue
 import threading
 from datetime import datetime, timezone
 
@@ -17,7 +17,7 @@ class TaskManager:
     Tracks all tasks in a flat dict keyed by task ID.
     Supports hierarchical task trees via parent_task_id references.
     When persistence is enabled, tasks are saved to SQLite via a
-    dedicated background thread to avoid async event loop issues.
+    single background worker thread to avoid race conditions.
     """
 
     def __init__(self, persist: bool | None = None) -> None:
@@ -25,38 +25,44 @@ class TaskManager:
         settings = get_settings()
         self._persist = persist if persist is not None else settings.system.task_persistence_enabled
         self._db_initialized = False
-        self._db_lock = threading.Lock()
 
-    def _save_task_sync(self, task: Task) -> None:
-        """Persist a task to the database in a background thread."""
-        if not self._persist:
-            return
+        # Single-threaded save queue to avoid race conditions
+        self._save_queue: queue.Queue[Task] = queue.Queue()
+        if self._persist:
+            self._worker = threading.Thread(target=self._db_worker, daemon=True)
+            self._worker.start()
 
-        def _do_save() -> None:
+    def _db_worker(self) -> None:
+        """Background thread that serializes all DB writes."""
+        import asyncio
+
+        loop = asyncio.new_event_loop()
+
+        while True:
             try:
-                import asyncio as _aio
-                loop = _aio.new_event_loop()
+                task = self._save_queue.get()
+                if task is None:
+                    break  # Shutdown signal
                 loop.run_until_complete(self._save_task_async(task))
-                loop.close()
             except Exception as e:
-                logger.warning("Failed to persist task %s: %s", task.id, e)
+                logger.debug("DB save failed for task: %s", e)
+            finally:
+                self._save_queue.task_done()
 
-        thread = threading.Thread(target=_do_save, daemon=True)
-        thread.start()
+        loop.close()
 
     async def _save_task_async(self, task: Task) -> None:
-        """Actual async save — runs in its own event loop via background thread."""
-        with self._db_lock:
-            if not self._db_initialized:
-                try:
-                    from nixclaw.storage.database import Database
-                    db = Database.get_instance()
-                    await db.init_tables()
-                    self._db_initialized = True
-                except Exception as e:
-                    logger.warning("Database init failed, disabling persistence: %s", e)
-                    self._persist = False
-                    return
+        """Persist a single task to the database."""
+        if not self._db_initialized:
+            try:
+                from nixclaw.storage.database import Database
+                db = Database.get_instance()
+                await db.init_tables()
+                self._db_initialized = True
+            except Exception as e:
+                logger.debug("Database init failed: %s", e)
+                self._persist = False
+                return
 
         from nixclaw.storage.database import Database
         from nixclaw.storage.repository import TaskRepository
@@ -64,6 +70,11 @@ class TaskManager:
         async with db.session() as session:
             repo = TaskRepository(session)
             await repo.save(task)
+
+    def _enqueue_save(self, task: Task) -> None:
+        """Queue a task for background DB persistence."""
+        if self._persist:
+            self._save_queue.put(task)
 
     def create_task(
         self,
@@ -91,7 +102,7 @@ class TaskManager:
             self._tasks[parent_task_id].subtasks.append(task)
 
         logger.info("Created task: %s (id=%s, parent=%s)", title, task.id, parent_task_id)
-        self._save_task_sync(task)
+        self._enqueue_save(task)
         return task
 
     def get_task(self, task_id: str) -> Task | None:
@@ -106,7 +117,7 @@ class TaskManager:
         if status == TaskStatus.COMPLETED:
             task.completed_at = datetime.now(timezone.utc)
         logger.debug("Task %s status -> %s", task_id, status.value)
-        self._save_task_sync(task)
+        self._enqueue_save(task)
 
     def assign_agent(self, task_id: str, agent_id: str) -> None:
         task = self._tasks.get(task_id)
@@ -118,14 +129,14 @@ class TaskManager:
         task = self._tasks.get(task_id)
         if task:
             task.result = result
-            self._save_task_sync(task)
+            self._enqueue_save(task)
 
     def set_error(self, task_id: str, error: str) -> None:
         task = self._tasks.get(task_id)
         if task:
             task.error = error
             task.status = TaskStatus.FAILED
-            self._save_task_sync(task)
+            self._enqueue_save(task)
 
     def get_pending_tasks(self) -> list[Task]:
         pending = [t for t in self._tasks.values() if t.status == TaskStatus.PENDING]

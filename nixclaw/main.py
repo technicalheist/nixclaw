@@ -3,6 +3,7 @@
 Usage as CLI:
     nixclaw "Your task description here"
     nixclaw --interactive
+    nixclaw --verbose "Task with full debug output"
     nixclaw --team CodeGenerator,Analyzer "Complex task description"
     nixclaw --serve                          # Start REST API server
     nixclaw --telegram                       # Start Telegram bot
@@ -20,7 +21,7 @@ import asyncio
 import sys
 
 from nixclaw.config import get_settings
-from nixclaw.logger import get_logger, setup_logging
+from nixclaw.logger import get_logger, setup_logging, is_verbose
 
 logger = get_logger(__name__)
 
@@ -33,9 +34,10 @@ async def run_task(task: str, team_profiles: list[str] | None = None, stream: bo
     try:
         if team_profiles:
             result = await orchestrator.run_with_team(task, team_profiles)
-        elif stream:
+        elif stream and is_verbose():
             result = await orchestrator.run_stream(task)
         else:
+            # Non-verbose: use run() which doesn't print AutoGen internals
             result = await orchestrator.run(task)
         return result
     finally:
@@ -48,13 +50,16 @@ async def interactive_mode() -> None:
 
     print("NixClaw - Multi-Agent AI System")
     print("=" * 40)
+    verbose = is_verbose()
+    if verbose:
+        print("Verbose mode ON")
     print("Type your task and press Enter. Type 'quit' to exit.\n")
 
     orchestrator = Orchestrator()
     try:
         while True:
             try:
-                task = input("\n> ").strip()
+                task = input("> ").strip()
             except (EOFError, KeyboardInterrupt):
                 print("\nShutting down...")
                 break
@@ -65,13 +70,15 @@ async def interactive_mode() -> None:
                 print("Shutting down...")
                 break
 
-            print(f"\nProcessing: {task}\n{'─' * 40}")
             try:
-                result = await orchestrator.run_stream(task)
-                print(f"\n{'─' * 40}\nResult:\n{result}")
+                if verbose:
+                    result = await orchestrator.run_stream(task)
+                else:
+                    result = await orchestrator.run(task)
+                print(f"\n{result}\n")
             except Exception as e:
                 logger.exception("Task failed")
-                print(f"\nError: {e}")
+                print(f"\nError: {e}\n")
     finally:
         await orchestrator.close()
 
@@ -105,8 +112,6 @@ def run_telegram_bot() -> None:
 
 def main() -> None:
     """CLI entry point."""
-    setup_logging()
-
     parser = argparse.ArgumentParser(
         description="NixClaw - Multi-Agent AI System",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -114,6 +119,7 @@ def main() -> None:
             "Examples:\n"
             "  nixclaw 'Analyze the project structure'\n"
             "  nixclaw --interactive\n"
+            "  nixclaw --verbose 'Task with debug output'\n"
             "  nixclaw --team CodeGenerator,Analyzer 'Build a REST API'\n"
             "  nixclaw --serve\n"
             "  nixclaw --telegram\n"
@@ -124,6 +130,11 @@ def main() -> None:
         "--interactive", "-i",
         action="store_true",
         help="Run in interactive mode",
+    )
+    parser.add_argument(
+        "--verbose", "-v",
+        action="store_true",
+        help="Show detailed agent output, tool calls, and debug logs",
     )
     parser.add_argument(
         "--team", "-t",
@@ -155,6 +166,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    # Initialize logging with verbose flag
+    setup_logging(verbose=args.verbose)
+
     if args.serve:
         serve_api(port=args.port)
     elif args.telegram:
@@ -164,8 +178,7 @@ def main() -> None:
     elif args.task:
         team_profiles = [p.strip() for p in args.team.split(",") if p.strip()] if args.team else None
         result = asyncio.run(run_task(args.task, team_profiles, stream=not args.no_stream))
-        if args.no_stream:
-            print(result)
+        print(result)
     else:
         parser.print_help()
         sys.exit(1)
