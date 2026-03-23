@@ -12,7 +12,7 @@ Usage as CLI:
     python -m nixclaw "Your task here"
 """
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 
 from nixclaw.agents.orchestrator import Orchestrator
 from nixclaw.agents.agent_factory import AgentFactory
