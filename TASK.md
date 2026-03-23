@@ -978,12 +978,37 @@ nixclaw/                         # Project root
 - [x] API + queue tests (11 new tests)
 - [x] Total: 82 tests passing
 
-### Next Steps
-1. Phase 5: Production hardening, monitoring, security audit
-2. Phase 6: PyPI publishing, Docker/K8s deployment
+### Phase 5: Production Hardening - COMPLETED
+- [x] Retry logic with exponential backoff (retry_async, @with_retry decorator)
+- [x] Secret masking in logs (API keys, tokens, passwords auto-masked)
+- [x] Input sanitization (path traversal prevention, null byte removal)
+- [x] Task input validation (empty check, length limits)
+- [x] Health check system (LLM, database, Telegram, agents)
+- [x] Health check wired to GET /health API endpoint
+- [x] Verbose mode (--verbose/-v flag for debug output)
+- [x] Clean output in normal mode (only final result, no AutoGen internals)
+- [x] SQLite race condition fix (serial save queue)
+- [x] Secondary Telegram log bot (TELEGRAM_BOT_TOKEN_LOG) for mirroring all output
+- [x] Log bot uses requests in background thread (non-blocking, batched)
+- [x] Security + retry tests (10 new tests)
+- [x] Total: 97 tests passing
+
+### Phase 6: Deployment & Publishing - COMPLETED
+- [x] PyPI package published: `pip install nixclaw`
+- [x] README.md with installation, quick start, API docs
+- [x] MIT License
+- [x] pyproject.toml with full metadata, classifiers, extras
+- [x] Dockerfile and docker-compose.yml
+- [x] 31 examples organized in docs/examples/ (cli, telegram, api, library)
+- [x] GitHub repository: https://github.com/technicalheist/nixclaw
+- [x] PyPI: https://pypi.org/project/nixclaw/
+
+### All Phases Complete
 
 ---
 
-**Document Version**: 1.3
+**Document Version**: 1.4
 **Last Updated**: Mar 23, 2026
 **Project**: NixClaw
+**PyPI**: https://pypi.org/project/nixclaw/
+**GitHub**: https://github.com/technicalheist/nixclaw
