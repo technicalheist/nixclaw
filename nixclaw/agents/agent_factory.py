@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from nixclaw.agents.base_agent import ManagedAgent, create_model_client
+from nixclaw.agents.base_agent import ManagedAgent
 from nixclaw.agents.agent_profiles import get_profile
 from nixclaw.config import get_settings
 from nixclaw.logger import get_logger

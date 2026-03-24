@@ -34,12 +34,41 @@ def _env_list(key: str, default: str = "") -> list[str]:
 
 
 class LLMConfig(BaseModel):
-    model: str = Field(default_factory=lambda: _env("LLM_MODEL", "qwen3.5-plus"))
-    api_key: str = Field(default_factory=lambda: _env("LLM_API_KEY"))
-    base_url: str = Field(default_factory=lambda: _env("LLM_BASE_URL", "https://llm.shivrajan.com/v1"))
+    # Active provider: openai | anthropic | gemini | vertex | qwen
+    provider: str = Field(default_factory=lambda: _env("PROVIDER", "openai"))
+
+    # Generic / legacy vars (used as fallback when provider-specific vars are absent)
+    model: str = Field(default_factory=lambda: _env("LLM_MODEL", ""))
+    api_key: str = Field(default_factory=lambda: _env("LLM_API_KEY", ""))
+    base_url: str = Field(default_factory=lambda: _env("LLM_BASE_URL", ""))
     temperature: float = Field(default_factory=lambda: _env_float("LLM_TEMPERATURE", 0.7))
     max_tokens: int = Field(default_factory=lambda: _env_int("LLM_MAX_TOKENS", 4096))
     request_timeout: int = Field(default_factory=lambda: _env_int("LLM_REQUEST_TIMEOUT", 60))
+
+    # OpenAI-compatible (also covers Ollama, vLLM, custom deployments)
+    openai_api_key: str = Field(default_factory=lambda: _env("OPENAI_API_KEY", ""))
+    openai_base_url: str = Field(default_factory=lambda: _env("OPENAI_BASE_URL", "https://api.openai.com/v1"))
+    openai_model: str = Field(default_factory=lambda: _env("OPENAI_MODEL", "gpt-4o"))
+
+    # Anthropic
+    anthropic_api_key: str = Field(default_factory=lambda: _env("ANTHROPIC_API_KEY", ""))
+    anthropic_base_url: str = Field(default_factory=lambda: _env("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1"))
+    anthropic_model: str = Field(default_factory=lambda: _env("ANTHROPIC_MODEL", "claude-3-opus-20240229"))
+
+    # Gemini
+    gemini_api_key: str = Field(default_factory=lambda: _env("GEMINI_API_KEY", ""))
+    gemini_base_url: str = Field(default_factory=lambda: _env("GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai"))
+    gemini_model: str = Field(default_factory=lambda: _env("GEMINI_MODEL", "gemini-2.5-flash"))
+
+    # Vertex AI
+    vertex_api_key: str = Field(default_factory=lambda: _env("VERTEX_API_KEY", ""))
+    vertex_base_url: str = Field(default_factory=lambda: _env("VERTEX_BASE_URL", "https://aiplatform.googleapis.com/v1"))
+    vertex_model: str = Field(default_factory=lambda: _env("VERTEX_MODEL", "gemini-2.5-flash-lite"))
+
+    # Qwen (uses email/password auth instead of API key)
+    qwen_email: str = Field(default_factory=lambda: _env("QWEN_EMAIL", ""))
+    qwen_password: str = Field(default_factory=lambda: _env("QWEN_PASSWORD", ""))
+    qwen_model: str = Field(default_factory=lambda: _env("QWEN_MODEL", "qwen3.5-plus"))
 
 
 class TelegramConfig(BaseModel):
@@ -79,8 +108,8 @@ class CommandExecutorConfig(BaseModel):
 class StorageConfig(BaseModel):
     database_url: str = Field(default_factory=lambda: _env("DATABASE_URL", "sqlite:///./agent_tasks.db"))
     redis_url: str = Field(default_factory=lambda: _env("REDIS_URL", "redis://localhost:6379/0"))
-    logs_dir: str = Field(default_factory=lambda: _env("STORAGE_LOGS_DIR", "/var/log/autogen-agent"))
-    temp_dir: str = Field(default_factory=lambda: _env("STORAGE_TEMP_DIR", "/tmp/autogen-agent"))
+    logs_dir: str = Field(default_factory=lambda: _env("STORAGE_LOGS_DIR", "/var/log/nixagent"))
+    temp_dir: str = Field(default_factory=lambda: _env("STORAGE_TEMP_DIR", "/tmp/nixagent"))
 
 
 class SystemConfig(BaseModel):

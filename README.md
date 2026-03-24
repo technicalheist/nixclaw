@@ -1,8 +1,10 @@
 # NixClaw
 
-Multi-agent AI system built on [AutoGen](https://github.com/microsoft/autogen) for autonomous task execution.
+Multi-agent AI system built on [nixagent](https://github.com/technicalheist/nixagent) for autonomous task execution.
 
 NixClaw breaks down complex tasks, dynamically creates specialized AI agents, and orchestrates them to deliver results — all with human-in-the-loop capabilities via Telegram.
+
+Supports **5 AI providers** out of the box: OpenAI, Anthropic, Gemini, Vertex AI, and Qwen.
 
 ## Installation
 
@@ -73,25 +75,50 @@ asyncio.run(main())
 
 ## Configuration
 
-Create a `.env` file in your project root:
+Create a `.env` file in your project root (see [.env.example](.env.example) for all options):
 
 ```env
-# LLM Configuration (required)
-LLM_MODEL=gpt-4
-LLM_API_KEY=your_api_key_here
-LLM_BASE_URL=https://api.openai.com/v1
+# Select your AI provider
+PROVIDER=openai   # openai | anthropic | gemini | vertex | qwen
+
+# OpenAI / OpenAI-compatible
+OPENAI_API_KEY=your_api_key_here
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4o
+
+# Anthropic
+ANTHROPIC_API_KEY=your_api_key_here
+ANTHROPIC_MODEL=claude-3-opus-20240229
+
+# Google Gemini
+GEMINI_API_KEY=your_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
+
+# Vertex AI
+VERTEX_API_KEY=your_api_key_here
+VERTEX_MODEL=gemini-2.5-flash-lite
+
+# Qwen (uses email + password, no API key)
+QWEN_EMAIL=your_email_here
+QWEN_PASSWORD=your_password_here
+QWEN_MODEL=qwen3.5-plus
 
 # Telegram Bot (optional)
 TELEGRAM_BOT_TOKEN=your_bot_token
-TELEGRAM_BOT_TOKEN_LOG=your_log_bot_token
 TELEGRAM_USER_IDS=your_user_id
-
-# Agent Settings
-AGENT_MAX_CONCURRENT_AGENTS=10
-AGENT_ENABLE_REFLECTION=true
 ```
 
-See [.env.example](.env.example) for all available options.
+## AI Provider Support
+
+| Provider | Auth | Notes |
+|----------|------|-------|
+| **OpenAI** | API key | Also works with Ollama, vLLM, and any OpenAI-compatible endpoint |
+| **Anthropic** | API key | Claude family of models |
+| **Gemini** | API key | Google Gemini via OpenAI-compatible endpoint |
+| **Vertex AI** | API key | Google Cloud Vertex AI |
+| **Qwen** | Email + Password | Alibaba Qwen via [chat.qwen.ai](https://chat.qwen.ai) |
+
+Switch provider by setting `PROVIDER=<name>` in your `.env` file.
 
 ## Agent Profiles
 
@@ -147,3 +174,4 @@ nixclaw/
 ## License
 
 MIT
+

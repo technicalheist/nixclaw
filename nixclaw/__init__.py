@@ -1,4 +1,4 @@
-"""NixClaw - Multi-Agent AI System built on AutoGen.
+"""NixClaw - Multi-Agent AI System built on nixagent.
 
 Usage as a library:
     from nixclaw import Orchestrator, AgentFactory, ManagedAgent
@@ -12,7 +12,7 @@ Usage as CLI:
     python -m nixclaw "Your task here"
 """
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 from nixclaw.agents.orchestrator import Orchestrator
 from nixclaw.agents.agent_factory import AgentFactory

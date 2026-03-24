@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nixclaw"
-version = "0.2.2"
-description = "Multi-agent AI system built on AutoGen for autonomous task execution"
+version = "0.3.0"
+description = "Multi-agent AI system built on nixagent for autonomous task execution"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [{name = "NixClaw"}]
-keywords = ["ai", "agents", "multi-agent", "autogen", "automation", "orchestration", "llm"]
+keywords = ["ai", "agents", "multi-agent", "nixagent", "automation", "orchestration", "llm"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -23,9 +23,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "autogen-agentchat==0.7.5",
-    "autogen-core==0.7.5",
-    "autogen-ext[openai]==0.7.5",
+    "nixagent>=1.15",
     "python-dotenv>=1.0.0",
     "pydantic>=2.0.0",
     "aiofiles>=24.0.0",

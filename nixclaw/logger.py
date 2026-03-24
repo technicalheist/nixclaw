@@ -43,7 +43,7 @@ def setup_logging(verbose: bool = False) -> None:
     logs_dir = Path(settings.storage.logs_dir)
     try:
         logs_dir.mkdir(parents=True, exist_ok=True)
-        fh = logging.FileHandler(logs_dir / "autogen-agent.log")
+        fh = logging.FileHandler(logs_dir / "nixagent.log")
         fh.setFormatter(fmt)
         fh.setLevel(logging.INFO)
         root.addHandler(fh)
@@ -61,7 +61,7 @@ def setup_logging(verbose: bool = False) -> None:
         pass
 
     # Suppress noisy third-party loggers
-    noisy_loggers = ["httpx", "httpcore", "openai", "urllib3", "telegram", "autogen_core.events"]
+    noisy_loggers = ["httpx", "httpcore", "openai", "urllib3", "telegram"]
     for name in noisy_loggers:
         logging.getLogger(name).setLevel(logging.ERROR if not verbose else logging.WARNING)
 
